@@ -1,1 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
+.alinhar-direita {
+  text-align: end
+}
+
+.alinhar-centro {
+  text-align: center;
+}
