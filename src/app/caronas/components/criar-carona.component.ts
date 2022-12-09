@@ -29,7 +29,6 @@ import { Router } from '@angular/router';
       <h3 class="tui-form__header tui-space_top-16">Nova Carona</h3>
 
       <form class="tui-row tui-row_adaptive " [formGroup]="formulario">
-
         <div class="tui-col_xs-12 tui-col_md-6 tui-col_lg-6 tui-space_bottom-6">
           <tui-input-date
             tuiUnfinishedValidator="Finish filling the field"
