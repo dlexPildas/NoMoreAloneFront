@@ -111,7 +111,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   criarFormulario(): void {
     this.formulario = this.formBuilder.group({
-      matricula: [30172014, Validators.required],
+      matricula: [3017214, Validators.required],
       senha: ['teste123', Validators.required]
     });
   }

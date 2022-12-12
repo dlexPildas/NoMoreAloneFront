@@ -56,6 +56,10 @@ import { AutenticacaoService } from '../services/autenticacao.service';
         flex-direction: column;
       }
 
+      header nav li {
+        margin-bottom: 8px;
+      }
+
       header img {
         width: 8rem;
       }

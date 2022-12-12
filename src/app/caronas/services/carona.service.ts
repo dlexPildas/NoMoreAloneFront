@@ -11,8 +11,10 @@ export class CaronaService {
 
   constructor(private http: HttpClient) { }
 
-  buscarCaronas(): Observable<CaronaModel[]> {
-    return this.http.get<CaronaModel[]>(this.BASE_URL);
+  buscarCaronas(data?: string, origemDestino?: string): Observable<CaronaModel[]> {
+    const dateParam = data ? `&data=${data}` : '';
+
+    return this.http.get<CaronaModel[]>(`${this.BASE_URL}/?origemDestino=${origemDestino ?? ''}${dateParam}`);
   }
 
   buscarCaronasPorUsuario(usuarioId: number): Observable<CaronaModel[]> {
@@ -29,6 +31,10 @@ export class CaronaService {
 
   deletarCarona(id: number): Observable<boolean> {
     return this.http.delete<boolean>(`${this.BASE_URL}/${id}`, {});
+  }
+
+  reservarCarona(idCarona: number, idPassageiro: number): Observable<boolean> {
+    return this.http.put<boolean>(`${this.BASE_URL}/${idCarona}/passageiro/${idPassageiro}/reservar`, {});
   }
 
 }

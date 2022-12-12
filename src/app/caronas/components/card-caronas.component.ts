@@ -1,41 +1,54 @@
-import { Component, Input } from '@angular/core';
+import { UserModel } from './../../usuarios/models/user.model';
+import { Router } from '@angular/router';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TuiAvatarModule, TuiIslandModule } from '@taiga-ui/kit';
-import { TuiLabelModule } from '@taiga-ui/core';
+import { TuiButtonModule, TuiLabelModule } from '@taiga-ui/core';
 import { CaronaModel } from '../models/carona.model';
+import { CaronaService } from '../services/carona.service';
+import { AutenticacaoService } from 'src/app/shared/services/autenticacao.service';
 
 @Component({
   selector: 'app-card-caronas',
   standalone: true,
-  imports: [CommonModule, TuiIslandModule, TuiLabelModule, TuiAvatarModule],
+  imports: [CommonModule, TuiIslandModule, TuiLabelModule, TuiAvatarModule, TuiButtonModule],
   template: `
-    <tui-island>
+    <tui-island class="card-container">
       <section class="tui-space_bottom-2 corpo-card">
         <span>
           <label tuiLabel="Origem">{{carona.pontoChegada}}</label>
           <label tuiLabel="Destino">{{carona.pontoPartida}}</label>
         </span>
 
-        <strong class="">
-          R$ 00,00
+        <strong>
+          R$ {{carona.preco}}
+          <button tuiButton size="xs" (click)="reservarCarona()" *ngIf="carona.dono != usuarioAtual?.id"> Reservar</button>
         </strong>
       </section>
 
       <footer>
+        <div class="info">
+          <span class="dono">
+            <tui-avatar
+              text="dmitry demensky"
+              size="m"
+              class="tui-space_top-1 tui-space_right-2"
+              [rounded]="true" >
+            </tui-avatar>
 
-        <div class="dono">
-          <tui-avatar
-            text="dmitry demensky"
-            size="m"
-            class="tui-space_top-1 tui-space_right-2"
-            [rounded]="true" >
-          </tui-avatar>
+            <h4>Daniel</h4>
+          </span>
 
-          <h4>Daniel</h4>
+          <h3 class="data-carona">{{carona.data | date:'dd/MM/yyyy'}} <small>{{carona.data | date:'HH:mm'}}</small> </h3>
         </div>
 
-        <h3 class="data-carona">{{carona.data | date:'dd/MM/yyyy'}} <small>{{carona.data | date:'HH:mm'}}</small> </h3>
+        <button
+          (click)="navegarParaDetalhesCarona(carona.id)"
+          style="width: 100%;"
+          tuiButton size="s"
+          appearance="secondary-destructive">Ver Detalhes</button>
       </footer>
+
     </tui-island>
   `,
   styles: [
@@ -45,15 +58,26 @@ import { CaronaModel } from '../models/carona.model';
         justify-content: space-between;
       }
 
-      footer {
+      footer .info {
         display: flex;
         align-items: center;
         justify-content: space-between;
+
       }
 
-      footer .dono {
+      footer .info  .dono {
         display: flex;
         align-items: center;
+      }
+
+      .card-container {
+        position: relative;
+      }
+
+      .card-container .passageiros {
+        position: absolute;
+        top: -20px;
+        left: 15px;
       }
 
       .corpo-card {
@@ -62,7 +86,16 @@ import { CaronaModel } from '../models/carona.model';
       }
 
       .corpo-card strong {
-        color: #054752
+        color: #054752;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--tui-positive-night-hover);
+        font-size: 18px
+      }
+
+      .corpo-card .preco-reservar {
+
       }
 
       .data-carona {
@@ -74,9 +107,35 @@ import { CaronaModel } from '../models/carona.model';
     `
   ]
 })
-export class CardCaronasComponent {
+export class CardCaronasComponent implements OnInit{
   @Input() carona!: CaronaModel;
 
+  usuarioAtual!: UserModel | null;
 
-  data = new Date();
+  constructor(
+    private caronaService: CaronaService,
+    private autenticacaoService: AutenticacaoService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.usuarioAtual = this.autenticacaoService.buscarUsuarioLogado();
+  }
+
+  reservarCarona(): void {
+    if (this.usuarioAtual == null) return;
+
+    this.caronaService
+      .reservarCarona(this.carona.id, this.usuarioAtual.id)
+      .subscribe({
+        next: () => console.log('Deu certo'),
+        error: () => console.log('Deu error'),
+        complete: () => console.log('Complete'),
+      })
+  }
+
+  navegarParaDetalhesCarona(caronaId: number): void {
+    this.router.navigateByUrl(`carona/${caronaId}/detalhe`);
+  }
+
 }

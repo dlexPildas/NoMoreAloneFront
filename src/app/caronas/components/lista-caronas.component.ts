@@ -9,30 +9,27 @@ import { CaronaService } from '../services/carona.service';
 import { CaronaModel } from '../models/carona.model';
 import { Observable } from 'rxjs';
 import { TuiCheckboxBlockModule } from '@taiga-ui/kit';
+import { FiltroPesquisaCaronaComponent } from './filtro-pesquisa-carona.component';
 
 @Component({
   selector: 'app-lista-caronas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, CardCaronasComponent, BotaoFlutuanteComponent, TuiCheckboxBlockModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CardCaronasComponent,
+    BotaoFlutuanteComponent,
+    TuiCheckboxBlockModule,
+    FiltroPesquisaCaronaComponent
+  ],
   template: `
     <div class="tui-container tui-container_adaptive">
-      <div class="tui-row tui-row_adaptive tui-space_top-6 ">
-        <div class="tui-col_xs-12 tui-col_md-12 tui-col_lg-12 alinhar-direita">
-          <tui-checkbox-block
-            #checkBoxApenasMinhasCaronas
-            [formControl]="filtroApenasMinhasCaronas"
-
-            contentAlign="right"
-            size="m"
-            *ngIf="usuarioEstaLogado$ | async">
-            Apenas minhas caronas
-          </tui-checkbox-block>
-        </div>
-      </div>
+      <app-filtro-pesquisa-carona [usuarioEstaLogado$]="usuarioEstaLogado$" (pesquisarCaronas)="buscarCaronas($event)"></app-filtro-pesquisa-carona>
 
       <div class="tui-row tui-row_adaptive tui-space_top-6 ">
-        <div *ngFor="let carona of caronas$ | async" class="tui-col_xs-12 tui-col_md-6 tui-col_lg-4 tui-space_top-3 tui-space_bottom-3">
-          <app-card-caronas [carona]="carona" ></app-card-caronas>
+        <div *ngFor="let carona of caronas$ | async" class="tui-col_xs-12 tui-col_md-6 tui-col_lg-4 tui-space_top-6 tui-space_bottom-6">
+          <app-card-caronas [carona]="carona"></app-card-caronas>
         </div>
       </div>
     </div>
@@ -56,23 +53,17 @@ export class ListaCaronasComponent implements OnInit {
   ngOnInit(): void {
     this.buscarCaronas();
     this.usuarioEstaLogado$ = this.autenticacaoService.usuarioLogado$;
-    this.filtroApenasMinhasCaronas.valueChanges
-      .subscribe(value => {
-        if (value && this.autenticacaoService.usarioEstaLogado()) {
-          this.caronas$ = this.caronaService
-            .buscarCaronasPorUsuario(this.autenticacaoService.buscarUsuarioLogado()?.id ?? 0);
-            return;
-        }
-        this.caronas$ = this.caronaService.buscarCaronas();
-      })
   }
 
-  buscarCaronas(): void {
+  buscarCaronas(form?: FormGroup): void {
+    if(form) {
+      let {data, origemDestino} = form.value;
+      data = data ? `${data.year}-${data.month + 1}-${data.day}` : '';
+
+      this.caronas$ = this.caronaService.buscarCaronas(data, origemDestino);
+      return;
+    }
     this.caronas$ = this.caronaService.buscarCaronas();
-  }
-
-  teste(value: any) {
-    console.log('testeeeee --- '+value)
   }
 
   navigate(url: string): void {

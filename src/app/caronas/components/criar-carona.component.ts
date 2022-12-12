@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TuiButtonModule, TuiDataListModule, TuiErrorModule } from '@taiga-ui/core';
 import { TuiComboBoxModule, TuiDataListWrapperModule, TuiInputCountModule, TuiInputDateModule, TuiInputDateTimeModule, TuiInputModule, TuiInputNumberModule, TuiInputTimeModule } from '@taiga-ui/kit';
+import {TuiCurrencyPipeModule} from '@taiga-ui/addon-commerce';
+
 import { CaronaService } from '../services/carona.service';
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { Router } from '@angular/router';
@@ -22,7 +24,9 @@ import { Router } from '@angular/router';
     TuiDataListWrapperModule,
     TuiButtonModule,
     TuiInputTimeModule,
-    TuiInputDateModule
+    TuiInputDateModule,
+    TuiInputNumberModule,
+    TuiCurrencyPipeModule
   ],
   template: `
     <div class="tui-container tui-container_adaptive">
@@ -46,7 +50,7 @@ import { Router } from '@angular/router';
           </tui-input-time>
         </div>
 
-        <div class="tui-col_xs-12 tui-col_md-6 tui-col_lg-6 tui-space_bottom-6">
+        <div class="tui-col_xs-12 tui-col_md-4 tui-col_lg-3 tui-space_bottom-6">
           <tui-input-count
             formControlName="quantidadePessoas"
             [min]="1"
@@ -58,7 +62,7 @@ import { Router } from '@angular/router';
           </tui-input-count>
         </div>
 
-        <div class="tui-col_xs-12 tui-col_md-6 tui-col_lg-6 tui-space_bottom-6">
+        <div class="tui-col_xs-12 tui-col_md-4 tui-col_lg-3 tui-space_bottom-6">
           <tui-combo-box
             formControlName="tipo">
             Tipo da Carona
@@ -68,6 +72,16 @@ import { Router } from '@angular/router';
             ></tui-data-list-wrapper>
           </tui-combo-box>
         </div>
+
+        <div class="tui-col_xs-12 tui-col_md-4 tui-col_lg-6 tui-space_bottom-6">
+          <tui-input-number
+            formControlName="preco"
+            [prefix]="'RS ' | tuiCurrency" >
+            Preço
+          </tui-input-number>
+        </div>
+
+
 
         <div class="tui-col_xs-12 tui-col_md-12 tui-space_bottom-6">
           <tui-input formControlName="pontoPartida">
@@ -135,7 +149,8 @@ export class CriarCaronaComponent implements OnInit {
       pontoPartida: ['', Validators.required],
       pontoChegada: ['', Validators.required],
       quantidadePessoas: [1, Validators.required],
-      tipo: ['', Validators.required]
+      tipo: ['', Validators.required],
+      preco: [0, Validators.required]
     });
   }
 
