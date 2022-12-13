@@ -1,16 +1,19 @@
+import { AlertService } from 'src/app/shared/services/alert.service';
+import { UserModel } from './../../usuarios/models/user.model';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { TuiAvatarModule, TuiIslandModule } from '@taiga-ui/kit';
-import { TuiLabelModule, TuiLinkModule } from '@taiga-ui/core';
+import { TuiButtonModule, TuiHintModule, TuiLabelModule, TuiLinkModule, TuiTooltipModule } from '@taiga-ui/core';
 
 import { CaronaModel } from './../models/carona.model';
 import { CaronaService } from './../services/carona.service';
+import { AutenticacaoService } from 'src/app/shared/services/autenticacao.service';
 
 @Component({
   selector: 'app-detalhe-carona',
   standalone: true,
-  imports: [CommonModule, RouterModule, TuiIslandModule, TuiLabelModule, TuiAvatarModule, TuiLinkModule],
+  imports: [CommonModule, RouterModule, TuiIslandModule, TuiLabelModule, TuiAvatarModule, TuiLinkModule, TuiButtonModule, TuiTooltipModule, TuiHintModule],
   template: `
     <tui-island class="card-container">
 
@@ -85,20 +88,33 @@ import { CaronaService } from './../services/carona.service';
           </span>
         </div>
 
-        <div class="tui-col_xs-3 tui-col_md-4 tui-space_bottom-6">
+        <div class="tui-col_xs-3 tui-col_md-3 tui-space_bottom-6">
           <label tuiLabel="Matrícula">
             <strong>{{passageiro.matricula}}</strong>
           </label>
         </div>
 
-        <div class="tui-col_xs-3 tui-col_md-4 tui-space_bottom-6">
+        <div class="tui-col_xs-3 tui-col_md-3 tui-space_bottom-6">
           <label tuiLabel="Semestre">
             <strong>{{passageiro.semestre}}</strong>
           </label>
         </div>
+
+        <div class="tui-col_xs-3 tui-col_md-2 tui-space_bottom-6" *ngIf="passageiro.id === usuarioLogado?.id">
+          <button
+            tuiIconButton
+            appearance="accent"
+            type="button"
+            [icon]="'tuiIconTrash'"
+            tuiHintDirection="right"
+            [tuiHint]="tooltip"
+            (click)="cancelarReserva(passageiro.id, carona!.id)" >
+          </button>
+        </div>
       </div>
     </tui-island>
 
+    <ng-template #tooltip>Cancelar Reserva</ng-template>
 
   `,
   styles: [
@@ -127,15 +143,20 @@ import { CaronaService } from './../services/carona.service';
 })
 export class DetalheCaronaComponent implements OnInit {
   carona!: CaronaModel | null;
+  usuarioLogado!: UserModel | null;
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private caronaService: CaronaService
+    private caronaService: CaronaService,
+    private autenticacaoService: AutenticacaoService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
     const id = this.activatedRoute.snapshot.paramMap.get('id');
     if(id) this.buscarDetalhesDaCarona(+id);
+
+    this.usuarioLogado = this.autenticacaoService.buscarUsuarioLogado();
   }
 
   buscarDetalhesDaCarona(idCarona: number): void {
@@ -144,5 +165,19 @@ export class DetalheCaronaComponent implements OnInit {
       .subscribe({
         next: carona => this.carona = carona
       });
+  }
+
+  cancelarReserva(idPassageiro: number, idCarona: number): void {
+    if(idPassageiro !== this.usuarioLogado?.id)
+      return this.alertService.mostrarMensagemError("HaHaHa espertinho!!! Na na nina não 😂");
+
+    this.caronaService.cancelarReservaCarona(idCarona, idPassageiro)
+      .subscribe({
+        next: () => {
+          this.alertService.mostrarMensagemSucesso("Reserva cancelada com sucesso");
+          this.buscarDetalhesDaCarona(idCarona);
+        },
+        error: error => this.alertService.mostrarMensagemError(error?.error?.error)
+      })
   }
 }

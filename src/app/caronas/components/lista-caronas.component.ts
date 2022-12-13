@@ -1,13 +1,14 @@
+import { LoadingComponent } from './../../shared/components/loading.component';
 import { FormGroup, Validators, FormsModule, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AutenticacaoService } from './../../shared/services/autenticacao.service';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CardCaronasComponent } from './card-caronas.component';
 import { BotaoFlutuanteComponent } from 'src/app/shared/components/botao-flutuante.component';
 import { CaronaService } from '../services/carona.service';
 import { CaronaModel } from '../models/carona.model';
-import { Observable } from 'rxjs';
+import { finalize, Observable } from 'rxjs';
 import { TuiCheckboxBlockModule } from '@taiga-ui/kit';
 import { FiltroPesquisaCaronaComponent } from './filtro-pesquisa-carona.component';
 
@@ -21,9 +22,12 @@ import { FiltroPesquisaCaronaComponent } from './filtro-pesquisa-carona.componen
     CardCaronasComponent,
     BotaoFlutuanteComponent,
     TuiCheckboxBlockModule,
-    FiltroPesquisaCaronaComponent
+    FiltroPesquisaCaronaComponent,
+    LoadingComponent
   ],
   template: `
+    <app-loading [loading]="loading"></app-loading>
+
     <div class="tui-container tui-container_adaptive">
       <app-filtro-pesquisa-carona [usuarioEstaLogado$]="usuarioEstaLogado$" (pesquisarCaronas)="buscarCaronas($event)"></app-filtro-pesquisa-carona>
 
@@ -43,9 +47,11 @@ export class ListaCaronasComponent implements OnInit {
   caronas$!: Observable<CaronaModel[]>;
   usuarioEstaLogado$!: Observable<boolean>;
   filtroApenasMinhasCaronas = new FormControl(false);
+  loading = false;
 
   constructor(
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private caronaService: CaronaService,
     private autenticacaoService: AutenticacaoService,
   ) {}
@@ -56,14 +62,25 @@ export class ListaCaronasComponent implements OnInit {
   }
 
   buscarCaronas(form?: FormGroup): void {
+    this.loading = true;
+
     if(form) {
       let {data, origemDestino} = form.value;
       data = data ? `${data.year}-${data.month + 1}-${data.day}` : '';
 
-      this.caronas$ = this.caronaService.buscarCaronas(data, origemDestino);
+      this.caronas$ = this.caronaService
+        .buscarCaronas(data, origemDestino)
+        .pipe(
+          finalize(() => this.loading = false)
+        );
       return;
     }
-    this.caronas$ = this.caronaService.buscarCaronas();
+
+    this.caronas$ = this.caronaService
+      .buscarCaronas()
+      .pipe(
+        finalize(() => this.loading = false)
+      );
   }
 
   navigate(url: string): void {

@@ -1,3 +1,4 @@
+import { AlertService } from 'src/app/shared/services/alert.service';
 import { UserModel } from './../../usuarios/models/user.model';
 import { Router } from '@angular/router';
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
@@ -36,7 +37,7 @@ import { AutenticacaoService } from 'src/app/shared/services/autenticacao.servic
               [rounded]="true" >
             </tui-avatar>
 
-            <h4>Daniel</h4>
+            <h4>{{carona.nomeDonoCarona}}</h4>
           </span>
 
           <h3 class="data-carona">{{carona.data | date:'dd/MM/yyyy'}} <small>{{carona.data | date:'HH:mm'}}</small> </h3>
@@ -113,9 +114,10 @@ export class CardCaronasComponent implements OnInit{
   usuarioAtual!: UserModel | null;
 
   constructor(
+    private router: Router,
     private caronaService: CaronaService,
     private autenticacaoService: AutenticacaoService,
-    private router: Router
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
@@ -123,13 +125,17 @@ export class CardCaronasComponent implements OnInit{
   }
 
   reservarCarona(): void {
-    if (this.usuarioAtual == null) return;
+    if (this.usuarioAtual == null) {
+      this.alertService.mostrarMensagemInformacao("Para reservar uma carona, é necessário realizar o login");
+      this.router.navigateByUrl('/login');
+      return;
+    };
 
     this.caronaService
       .reservarCarona(this.carona.id, this.usuarioAtual.id)
       .subscribe({
-        next: () => console.log('Deu certo'),
-        error: () => console.log('Deu error'),
+        next: () => this.alertService.mostrarMensagemSucesso('Carona foi reservado com sucesso :)'),
+        error: error => this.alertService.mostrarMensagemError(error?.error?.error),
         complete: () => console.log('Complete'),
       })
   }

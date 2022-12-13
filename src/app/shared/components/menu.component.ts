@@ -15,7 +15,6 @@ import { AutenticacaoService } from '../services/autenticacao.service';
 
       <nav>
         <li (click)="navigate('caronas')">Caronas</li>
-        <li (click)="navigate('')">Home</li>
         <li (click)="navigate('caronas')">Sobre</li>
         <li *ngIf="(usuarioEstaLogado$ | async) == false" (click)="navigate('login')">Entrar</li>
         <li *ngIf="usuarioEstaLogado$ | async" (click)="sair()">Sair</li>

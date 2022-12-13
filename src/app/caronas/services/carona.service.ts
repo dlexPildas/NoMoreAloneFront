@@ -37,4 +37,8 @@ export class CaronaService {
     return this.http.put<boolean>(`${this.BASE_URL}/${idCarona}/passageiro/${idPassageiro}/reservar`, {});
   }
 
+  cancelarReservaCarona(idCarona: number, idPassageiro: number): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.BASE_URL}/${idCarona}/passageiro/${idPassageiro}/cancelar`, {});
+  }
+
 }

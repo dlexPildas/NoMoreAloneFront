@@ -1,14 +1,17 @@
+import { LoadingComponent } from './../../shared/components/loading.component';
 import { AutenticacaoService } from 'src/app/shared/services/autenticacao.service';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TuiButtonModule, TuiDataListModule, TuiErrorModule } from '@taiga-ui/core';
-import { TuiComboBoxModule, TuiDataListWrapperModule, TuiInputCountModule, TuiInputDateModule, TuiInputDateTimeModule, TuiInputModule, TuiInputNumberModule, TuiInputTimeModule } from '@taiga-ui/kit';
+import { TuiActionModule, TuiComboBoxModule, TuiDataListWrapperModule, TuiInputCountModule, TuiInputDateModule, TuiInputDateTimeModule, TuiInputModule, TuiInputNumberModule, TuiInputTimeModule } from '@taiga-ui/kit';
 import {TuiCurrencyPipeModule} from '@taiga-ui/addon-commerce';
 
 import { CaronaService } from '../services/carona.service';
 import { TuiDay, TuiTime } from '@taiga-ui/cdk';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
+import { AlertService } from 'src/app/shared/services/alert.service';
 
 @Component({
   selector: 'app-criar-carona',
@@ -26,10 +29,14 @@ import { Router } from '@angular/router';
     TuiInputTimeModule,
     TuiInputDateModule,
     TuiInputNumberModule,
-    TuiCurrencyPipeModule
+    TuiCurrencyPipeModule,
+    LoadingComponent,
+    TuiActionModule
   ],
   template: `
     <div class="tui-container tui-container_adaptive">
+      <app-loading [loading]="loading"></app-loading>
+
       <h3 class="tui-form__header tui-space_top-16">Nova Carona</h3>
 
       <form class="tui-row tui-row_adaptive " [formGroup]="formulario">
@@ -130,12 +137,14 @@ import { Router } from '@angular/router';
 })
 export class CriarCaronaComponent implements OnInit {
   formulario!: FormGroup;
+  loading = false;
 
   constructor(
     private formBuilder: FormBuilder,
     private router: Router,
     private caronaService: CaronaService,
     private autenticacaoService: AutenticacaoService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit(): void {
@@ -162,21 +171,32 @@ export class CriarCaronaComponent implements OnInit {
 
     const request = {
       ...this.formulario.value,
-      data: new Date(data.year, data.month, data.day, hora.hours, hora.minutes),
+      data: `${data.year}-${data.month}-${data.day}T${this.formatarHoraMinuto(hora.hours)}:${this.formatarHoraMinuto(hora.minutes)}:00Z`,
       dono: this.autenticacaoService.buscarUsuarioLogado()?.id,
       tipo: 0
     };
 
+    this.loading = true;
     this.caronaService
       .criarCarona(request)
+      .pipe(
+        finalize(() => this.loading = false)
+      )
       .subscribe({
-        next: () => console.log(''),
-        error: () => console.log(''),
+        next: () => {
+          this.alertService.mostrarMensagemSucesso("Carona criada com sucesso :)")
+          this.voltarParaTelaCaronas();
+        },
+        error: error => this.alertService.mostrarMensagemError(error.error.error),
         complete: () => console.log(''),
       })
   }
 
   voltarParaTelaCaronas(): void {
     this.router.navigateByUrl('/caronas');
+  }
+
+  formatarHoraMinuto(valor: number): string {
+    return valor < 10 ? `0${valor}` : `${valor}`;
   }
 }

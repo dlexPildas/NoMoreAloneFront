@@ -7,6 +7,7 @@ export interface CaronaModel {
   quantidadePessoas: number;
   tipo: string;
   dono: number;
+  nomeDonoCarona: string;
   preco: number;
   passageiros: UserModel[];
 }
